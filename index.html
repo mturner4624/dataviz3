@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <style>
+        .chart-container {
+            max-width: 1050px;
+            margin: 0 auto;
+            /* auto centers the div */
+            font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        }
+
+        svg {
+            overflow: visible;
+        }
+
+        img {
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            padding-bottom: 20px;
+        }
+
+        .popup {
+            position: absolute; 
+            border: 1px solid blue;
+            background-color: white;
+            padding: 10px;
+            opacity: 0
+        }
+
+    </style>
+   
+</head>
+
+<body>
+    <div class="chart-container">
+        <h1 class="headline">
+            The percentage of people living in the US with a bachelor's degree or higher varies widely by county
+        </h1>
+
+        <object data="county.svg" width=800px> </object>
+        <p>2015-2019 ACS data prepared by the USDA Economic Research Service</p>
+       
+        <div class="popup"></div>
+
+       
+       
+    </div>
+</body>
+
+<script src="https://d3js.org/d3.v6.min.js"></script>
+
+<script src="https://unpkg.com/topojson@3"></script>
+
+<script>
+    let width = 1250;
+    let height = 700;
+
+    let svg = d3.select("body").select("svg")
+
+    d3.json('c.json').then(function (data){
+        console.log({data})
+
+        let county = topojson.feature(data, data.objects.county);
+        let state = topojson.feature(data, data.objects.state);
+        console.log(county)
+
+        let Projection = d3.geoAlbersUsa()
+            .fitSize([width, height], state)
+        let path = d3.geoPath()
+            .projection(Projection)
+        
+        svg.append("g")
+            .attr("class", "county")
+            .selectAll("path")
+            .data(state.features)
+            .join("path")
+            .attr("d", path)
+            .attr("fill", "white")
+            .attr("stroke", "black")  
+        
+        // let circles = svg.append("g")
+        //     .selectAll("circles")
+        //     .data(county.features.filter(d => d.geometry != null).sort((a, b) => d3.descending(a.properties.pop_18_in_poverty, b.properties.pop_18_in_poverty)))
+        //     .attr("class", function (d) {return "circles p-" + d.properties.GEOID })
+        //     .attr("fill", "orange")
+        //     .attr("stroke", "orange")
+        //     .attr("fill-opacity", 1)
+        //     .attr("stroke-width", 0.5)
+        //     .attr("transform", d => `translate(${Projection([d.geometry.coordinates[0], d.geometry.coordinates[1]])})`)
+        
+        // let popup = d3.select(".popup")
+
+        // circles.on("mouseover", (pointer_event, d) => {
+        //     svg.select(".p-" + d.properties.GEOID)
+        //         .style("stroke-width", 5)
+        //         .style("opacity", 1)
+        //         .raise()
+            
+        //     popup
+        //         .style("opacity", 1)
+        //         .style("left", (pointer_event.x + 20) + "px")
+        //         .style("top", (pointer_event.y - 20) + "px")
+        //         .html("In " + "<b>" + d.properties.Geo_QName + "</b>, there are " + "<b>" + 
+        //             d.properties.pop_18_in_poverty + "</b> children in poverty " + "<b>")
+        // })
+
+        // circles.on("mouseout", (pointer_event, d) => {
+        //     svg.select(".p-" + d.properties.GEOID)
+        //         .style("stroke-width", 0.5)
+        //         .style("opacity", 0.5)
+        //         .raise()
+
+        //     popup
+        //         .style("opacity", 0)
+
+    </script>
+
+        }) 
+
