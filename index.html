@@ -15,10 +15,6 @@
             overflow: visible;
         }
 
-        img {
-            width: 100%;
-        }
-
         h1 {
             text-align: center;
             padding-bottom: 20px;
@@ -26,14 +22,15 @@
 
         .popup {
             position: absolute; 
-            border: 1px solid blue;
-            background-color: white;
+            border: 1px solid black;
+            background-color: white; 
             padding: 10px;
             opacity: 0
         }
 
     </style>
-   
+    <!-- add your script blocks at the end -->
+
 </head>
 
 <body>
@@ -41,84 +38,121 @@
         <h1 class="headline">
             The percentage of people living in the US with a bachelor's degree or higher varies widely by county
         </h1>
-
-        <object data="county.svg" width=800px> </object>
+        <object data="simple-key.svg" width=300px> </object>
+        <p>percentage of population with bachelor's degree or higher</p>
+        <svg width="1250px" height="800px">
+        </svg>
         <p>2015-2019 ACS data prepared by the USDA Economic Research Service</p>
-       
         <div class="popup"></div>
 
-       
-       
     </div>
 </body>
 
+
+<!-- we're using d3 version 6 (the latest version) for all out work -->
 <script src="https://d3js.org/d3.v6.min.js"></script>
 
+<!-- load topojson script -->
 <script src="https://unpkg.com/topojson@3"></script>
 
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+
 <script>
+    console.log({ d3 })
+    console.log({ topojson })
+
     let width = 1250;
     let height = 700;
 
     let svg = d3.select("body").select("svg")
 
-    d3.json('c.json').then(function (data){
+    d3.json('county.json').then(function (data){
         console.log({data})
 
-        let county = topojson.feature(data, data.objects.county);
-        let state = topojson.feature(data, data.objects.state);
-        console.log(county)
+        let bubbles = topojson.feature(data, data.objects.bubbles);
+        // let state = topojson.feature(data, data.objects.state);
+        console.log(bubbles)
 
         let Projection = d3.geoAlbersUsa()
-            .fitSize([width, height], state)
+            .fitSize([width, height], bubbles)
         let path = d3.geoPath()
             .projection(Projection)
         
-        svg.append("g")
-            .attr("class", "county")
-            .selectAll("path")
-            .data(state.features)
+        // let innerlines = topojson.mesh(data, data.objects.state, function (a, b) {
+        //     return a != b; });
+
+        svg
+            .selectAll("counties")
+            .data(bubbles.features)
             .join("path")
             .attr("d", path)
-            .attr("fill", "white")
-            .attr("stroke", "black")  
+            .style("fill", "#eee")
+            .style("stroke", "none")
+            .style("pointer-events", "none")
+
+        let color = d3.scaleQuantize()
+            .domain([0, 77.6])
+            .range(["#eff3ff","#bdd7e7","#6baed6","#2171b5"]);
         
-        // let circles = svg.append("g")
-        //     .selectAll("circles")
-        //     .data(county.features.filter(d => d.geometry != null).sort((a, b) => d3.descending(a.properties.pop_18_in_poverty, b.properties.pop_18_in_poverty)))
-        //     .attr("class", function (d) {return "circles p-" + d.properties.GEOID })
-        //     .attr("fill", "orange")
-        //     .attr("stroke", "orange")
-        //     .attr("fill-opacity", 1)
-        //     .attr("stroke-width", 0.5)
-        //     .attr("transform", d => `translate(${Projection([d.geometry.coordinates[0], d.geometry.coordinates[1]])})`)
-        
-        // let popup = d3.select(".popup")
+        // let div = d3.select("body").append("div")
+        //     .attr("class", "tooltip")
+        //     .style("opacity", 0)
+            // .html("In " + "<b>" + d.properties.Area_name + "</b>, " + "<b>" + d.properties.percent + "</b> percent of residents have a college degree or further education. " + "<b>");
 
-        // circles.on("mouseover", (pointer_event, d) => {
-        //     svg.select(".p-" + d.properties.GEOID)
-        //         .style("stroke-width", 5)
-        //         .style("opacity", 1)
-        //         .raise()
-            
-        //     popup
-        //         .style("opacity", 1)
-        //         .style("left", (pointer_event.x + 20) + "px")
-        //         .style("top", (pointer_event.y - 20) + "px")
-        //         .html("In " + "<b>" + d.properties.Geo_QName + "</b>, there are " + "<b>" + 
-        //             d.properties.pop_18_in_poverty + "</b> children in poverty " + "<b>")
-        // })
+        svg
+            .selectAll("path")
+            .data(bubbles.features)
+            .join("path")
+            .attr("d", path)
+            .style("fill", d => {
+            let value = d.properties.percent
+            return color(value)
+            })
+            // .on('mouseover', function (d, i) {
+            //     div.transition()
+            //    .duration(50)
+            //    .style("opacity", 1)
+            //    .html("In " + "<b>" + d.properties.Area_name + "</b>, " 
+            //    + "<b>" + d.properties.percent 
+            //     + "</b> percent of residents have a college degree or further education. " + "<b>")})
 
-        // circles.on("mouseout", (pointer_event, d) => {
-        //     svg.select(".p-" + d.properties.GEOID)
-        //         .style("stroke-width", 0.5)
-        //         .style("opacity", 0.5)
-        //         .raise()
+            // .on('mouseout', function (d, i) {
+            //     div.transition()
+            //    .duration('50')
+            //    .style("opacity", 0)})
 
-        //     popup
-        //         .style("opacity", 0)
+// function handleMouseOver(d, i) {  // Add interactivity
 
-    </script>
+// // Use D3 to select element, change color and size
+// d3.select(this).attr({
+//   fill: "orange",
+//   r: radius * 2
+// });
 
-        }) 
+// // Specify where to put label of text
+// svg.append("text").attr({
+//    id: "t" + d.x + "-" + d.y + "-" + i,  // Create an id for text so we can select it later for removing on mouseout
+//     x: function() { return xScale(d.x) - 30; },
+//     y: function() { return yScale(d.y) - 15; }
+// })
+// .text(function() {
+//   return [d.x, d.y];  // Value of the text
+// });
+// }
 
+// function handleMouseOut(d, i) {
+// // Use D3 to select element, change color back to normal
+// d3.select(this).attr({
+//   fill: "black",
+//   r: radius
+// });
+
+// // Select text by id and then remove
+// d3.select("#t" + d.x + "-" + d.y + "-" + i).remove();  // Remove text location
+// }
+
+
+    })
+                
+
+</script>
